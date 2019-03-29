@@ -46,3 +46,21 @@ class Camera(object):
         """
         return False
     
+    def makeCameraMatrix(self, paramDict):
+        """Constructs a camera matrix from the given parameters
+        
+        Args:
+            paramDict (dictionary {str : float}): Dictionary containing
+                - fx
+                - fy
+                - cx
+                - cy
+        
+        Returns:
+            K (np.array): A 3-by-3 numpy array of form:
+                [fx 0 cx]
+                [0 fy cy]
+                [0 0 1]
+        """
+        return False
+    
