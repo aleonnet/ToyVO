@@ -27,15 +27,12 @@ class Camera(object):
         """
         
         K = camera_dict['K']
-        K = np.array([[K['fx'], 0, K['cx']], 
-                      [0, K['fy'], K['cy']], 
-                      [0, 0, 1]], dtype=np.float32)
 
         dist_coeffs = camera_dict['dist_coeffs']
         dist_coeffs = np.array([dist_coeffs['k1'], dist_coeffs['k2'], dist_coeffs['p1'], 
                                 dist_coeffs['p2'], dist_coeffs['k3']], dtype=np.float32)
 
-        self.K = K if K is not None else np.zeros((3,3))
+        self.K = self.makeCameraMatrix(K) if K is not None else np.zeros((3,3))
         self.dist_coeffs = dist_coeffs if dist_coeffs is not None else np.array([0, 0, 0, 0, 0])
 
     def undistortImage(self, image):
@@ -87,5 +84,12 @@ class Camera(object):
                 [0 fy cy]
                 [0 0 1]
         """
-        return False
+        fx = paramDict['fx']
+        fy = paramDict['fy']
+        cx = paramDict['cx']
+        cy = paramDict['cy']
+        K = np.array([[fx, 0, cx], 
+                      [0, fy, cy], 
+                      [0, 0, 1]], dtype=np.float32)
+        return K
     
