@@ -8,8 +8,33 @@ class Camera(object):
         K (np.array): The camera matrix in form [fx 0 cx; 0 fy cy; 0 0 1]
         dist_coeffs (np.array): Distortion coefficients in form [k1 k2 p1 p2 k3]
     """
-    def __init__(self, K = None, dist_coeffs = None):
-        """ Inits Camera with given camera matrix and distortion coefficients"""
+    def __init__(self, camera_dict=None):
+        """ Inits Camera with given camera matrix and distortion coefficients
+
+        Args:
+            camera_dict (dict{str:list}): Dictionary containing:
+                K (dict{str:float}): Dictionary containing:
+                    fx
+                    fy
+                    cx
+                    cy
+                dist_coeffs (dict{str:float}): Dictionary containing:
+                    k1
+                    k2
+                    p1
+                    p2
+                    k3
+        """
+        
+        K = camera_dict['K']
+        K = np.array([[K['fx'], 0, K['cx']], 
+                      [0, K['fy'], K['cy']], 
+                      [0, 0, 1]], dtype=np.float32)
+
+        dist_coeffs = camera_dict['dist_coeffs']
+        dist_coeffs = np.array([dist_coeffs['k1'], dist_coeffs['k2'], dist_coeffs['p1'], 
+                                dist_coeffs['p2'], dist_coeffs['k3']], dtype=np.float32)
+
         self.K = K if K is not None else np.zeros((3,3))
         self.dist_coeffs = dist_coeffs if dist_coeffs is not None else np.array([0, 0, 0, 0, 0])
 
