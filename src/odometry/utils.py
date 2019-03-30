@@ -2,12 +2,6 @@ import numpy as np
 import cv2
 import yaml
 
-class ConfigLoader(object):
-    """Class that loads yaml configurations for objects"""
-
-    def __init__(self):
-        pass
-
 class ImageLoader(object):
     """Class that returns images from a dataset
 
