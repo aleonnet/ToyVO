@@ -4,3 +4,5 @@ The goal is to implement all needed functions (apart from things like displaying
 
 ## TODO
 - [ ] 2D feature tracking 
+- [ ] 3D-2D feature registration
+- [ ] Bundle Adjustment
