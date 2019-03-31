@@ -15,3 +15,13 @@ class Odometry(object):
         """Inits Odometry with a camera"""
         self.cam = camera if camera is not None else Camera()
         self.image_loader = ImageLoader(image_path)
+        self.frames = []
+        self.poses = []
+        self.next_idx = 0 # index of next image to be processed
+
+    def initialize(self):
+        """TODO: Docstring"""
+        pass
+
+
+

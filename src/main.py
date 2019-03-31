@@ -22,5 +22,4 @@ if __name__ == '__main__':
             print(exc)
 
     cam = Camera(camera_dict)
-    print(cam.K)
     odom = Odometry(cam)
