@@ -12,7 +12,7 @@ class Camera(object):
         """ Inits Camera with given camera matrix and distortion coefficients
 
         Args:
-            camera_dict (dict{str:list}): Dictionary containing:
+            camera_dict (dict{str:dict}): Dictionary containing:
                 K (dict{str:float}): Dictionary containing:
                     fx
                     fy
