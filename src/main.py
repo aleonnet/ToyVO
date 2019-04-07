@@ -13,18 +13,40 @@ from odometry.odometry import Odometry
 def initializeOdometry(args):
     """ return odometry system """
     with open(args.camera, 'r') as stream:
-        try:
-            camera_dict = yaml.load(stream, Loader=yaml.BaseLoader)
-        except yaml.YAMLError as exc:
-            print(exc)
+        camera_dict = yaml.load(stream, Loader=yaml.BaseLoader)
     cam = Camera(camera_dict)
     odom = Odometry(cam, args.path)
     return odom
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--camera', help='Location of camera config file', type=str, default='../config/camera.yaml', required=False)
-    parser.add_argument('-p', '--path', help='Folder containing images', type=str, default='../data/', required=False)
+    parser.add_argument('-c', 
+                        '--camera', 
+                        help='Location of camera config file', 
+                        type=str, default='../config/camera.yaml', 
+                        required=False)
+    parser.add_argument('-p', 
+                        '--path', 
+                        help='Folder containing images', 
+                        type=str, 
+                        default='../data/', 
+                        required=False)
+
     args = parser.parse_args()
 
+
+    # TODO: Initialization phase 1
+    #   Initialize odometry object
     odom = initializeOdometry(args)
+    #   Grab first frame
+    #   Detect features
+    #   Set state to initializing
+    
+    # TODO: Initialization phase 2
+    #   Grab second frame
+    #   Track features from first frame into second frame
+    #   Calculate pose
+    #   Triangulate points(?)
+    #
+
+    # TODO: Initialize tracking loop
