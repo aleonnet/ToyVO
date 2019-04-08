@@ -68,3 +68,6 @@ class Odometry(object):
                                                      mask = None,
                                                      **self.feature_params)
         self.frames.append(new_frame)
+
+    def track_features(self, frame1, frame2):
+        pass
