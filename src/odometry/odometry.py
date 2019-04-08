@@ -4,7 +4,7 @@ import cv2
 from enum import Enum
 
 from odometry.camera import Camera
-from odometry.utils import ImageLoader
+from odometry.utils import ImageLoader, ImageType
 from odometry.frame import Frame
 
 class TrackingState(Enum):
@@ -34,7 +34,7 @@ class Odometry(object):
         # https://docs.opencv.org/3.4/d7/d8b/tutorial_py_lucas_kanade.html
         self.lk_params = dict(winSize = (15,15),
                               maxLevel = 2,
-                              criteria (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUT,
+                              criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,
                                         10, 0.03))
         self.feature_params = dict(maxCorners = 100,
                                    qualityLevel = 0.3,
@@ -51,11 +51,20 @@ class Odometry(object):
         # ...
         self.state = TrackingState.TRACKING
 
-    def add_frame(self, image, pose, image):
-        new_frame = Frame(K = K,
-                          pose = pose,
-                          image = image)
-        new_frame.features = cv2.goodFeaturesToTrack(new_frame.image,
+    def add_frame(self, image, pose, K):
+        # cv2.goodFeaturesToTrack() requires a grayscale image,
+        # handle the 
+        if self.image_loader.color is ImageType.GRAY:
+            new_frame = Frame(K = K,
+                              pose = pose,
+                              image_gray = image)
+        else:
+            new_frame = Frame(K = K, 
+                              pose = pose,
+                              image_color = image)
+            new_frame.image_gray = cv2.cvtColor(new_frame.image_color, 
+                                                cv2.COLOR_BGR2GRAY)
+        new_frame.features = cv2.goodFeaturesToTrack(new_frame.image_gray,
                                                      mask = None,
                                                      **self.feature_params)
         self.frames.append(new_frame)

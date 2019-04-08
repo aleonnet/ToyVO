@@ -1,6 +1,17 @@
 import numpy as np
 import cv2
 import glob
+from enum import Enum
+
+def test_image(image):
+    if (len(image.shape) < 3):
+        return ImageType.GRAY
+    else:
+        return ImageType.COLOR
+
+class ImageType(Enum):
+    GRAY = 1
+    COLOR = 2
 
 class ImageLoader(object):
     """Class that returns images from a dataset
@@ -15,6 +26,8 @@ class ImageLoader(object):
         self.database = glob.glob(path + '*.*')
         self.database.sort()
         self.num_images = len(self.database)
+        self.color = test_image(cv2.imread(self.database[0]))
+
     
     def get_image(self, index = None):
         """Returns index-th image"""
