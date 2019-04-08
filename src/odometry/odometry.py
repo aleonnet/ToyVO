@@ -9,9 +9,8 @@ from odometry.frame import Frame
 
 class TrackingState(Enum):
     UNINITIALIZED = 1
-    INITIALIZING = 2
-    TRACKING_GOOD = 3
-    END_OF_IMAGES = 4
+    TRACKING = 2
+    END_OF_IMAGES = 3
 
 class Odometry(object):
     """A class representing a visual odometry system
@@ -31,19 +30,32 @@ class Odometry(object):
         self.poses = []
         self.next_idx = 0 # index of next image to be processed
 
-    def initialize(self):
-        """TODO: Docstring"""
+        # Lucas-Kanade tracking info
+        # https://docs.opencv.org/3.4/d7/d8b/tutorial_py_lucas_kanade.html
+        self.lk_params = dict(winSize = (15,15),
+                              maxLevel = 2,
+                              criteria (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUT,
+                                        10, 0.03))
+        self.feature_params = dict(maxCorners = 100,
+                                   qualityLevel = 0.3,
+                                   minDistance = 7,
+                                   blockSize = 7)
+
+    def initialize_tracking(self):
+        """TODO: Docstring and implementation
+        Process first two frames, get initial pose estimates, yada yada
+        """
         image_0 = self.image_loader.getImage(self.next_idx)
-        frame_0 = Frame(image_0)
         pose_0 = np.eye(4)
+        self.add_frame(self.cam.K, pose_0, image_0)
+        # ...
+        self.state = TrackingState.TRACKING
 
-    def add_frame(self, image):
-        new_frame = Frame(current_image)
+    def add_frame(self, image, pose, image):
+        new_frame = Frame(K = K,
+                          pose = pose,
+                          image = image)
+        new_frame.features = cv2.goodFeaturesToTrack(new_frame.image,
+                                                     mask = None,
+                                                     **self.feature_params)
         self.frames.append(new_frame)
-
-    def process_frame(self):
-        """TODO"""
-        pass
-
-    def run_odometry(self):
-        pass

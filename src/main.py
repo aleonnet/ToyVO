@@ -2,7 +2,7 @@
 import numpy as np
 import cv2
 
-# Utility Imports
+# Utility imports
 import yaml
 import argparse
 
