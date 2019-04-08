@@ -14,8 +14,9 @@ class ImageLoader(object):
         self.path = path
         self.database = glob.glob(path + '*.*')
         self.database.sort()
+        self.num_images = len(self.database)
     
-    def getImage(self, index = None):
+    def get_image(self, index = None):
         """Returns index-th image"""
         if index is not None:
             # Warning: will just return None if imread fails
