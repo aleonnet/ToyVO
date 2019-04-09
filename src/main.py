@@ -8,7 +8,7 @@ import argparse
 
 # Personal files
 from odometry.camera import Camera
-from odometry.odometry import Odometry
+from odometry.odometry import Odometry, TrackingState
 
 def initializeOdometry(args):
     """ return odometry system """
@@ -17,6 +17,23 @@ def initializeOdometry(args):
     cam = Camera(camera_dict)
     odom = Odometry(cam, args.path)
     return odom
+
+def run_odometry(args):
+    # TODO: Initialization phase 1
+    #   Initialize odometry object
+    odom = initializeOdometry(args)
+    #   Grab first frame
+    #   Detect features
+    #   Set state to initializing
+    odom.initialize_tracking()
+    if odom.state is not TrackingState.TRACKING:
+        print("Error in initialization. Exiting")
+        return
+    
+    # TODO: Initialize tracking loop
+    for i in range(2, odom.image_loader.num_images):
+        # run loop
+        pass
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -33,22 +50,7 @@ if __name__ == '__main__':
                         required=False)
 
     args = parser.parse_args()
-
-
-    # TODO: Initialization phase 1
-    #   Initialize odometry object
-    odom = initializeOdometry(args)
-    #   Grab first frame
-    #   Detect features
-    #   Set state to initializing
-    odom.initialize_tracking()
     
-    # TODO: Initialization phase 2
-    #   Grab second frame
-    #   Track features from first frame into second frame
-    #   Calculate pose
+    run_odometry(args)
 
-    # TODO: Initialize tracking loop
-    for i in range(2, odom.image_loader.num_images):
-        # run loop
-        pass
+
