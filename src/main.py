@@ -41,12 +41,14 @@ if __name__ == '__main__':
     #   Grab first frame
     #   Detect features
     #   Set state to initializing
+    odom.initialize_tracking()
     
     # TODO: Initialization phase 2
     #   Grab second frame
     #   Track features from first frame into second frame
     #   Calculate pose
-    #   Triangulate points(?)
-    #
 
     # TODO: Initialize tracking loop
+    for i in range(2, odom.image_loader.num_images):
+        # run loop
+        pass

@@ -27,9 +27,9 @@ class Odometry(object):
         self.state = TrackingState.UNINITIALIZED
 
         self.frames = []
-        self.poses = []
         self.next_idx = 0 # index of next image to be processed
-
+        
+        self.min_features = 1000 
         # Lucas-Kanade tracking info
         # https://docs.opencv.org/3.4/d7/d8b/tutorial_py_lucas_kanade.html
         self.lk_params = dict(winSize = (15,15),
@@ -45,29 +45,95 @@ class Odometry(object):
         """TODO: Docstring and implementation
         Process first two frames, get initial pose estimates, yada yada
         """
-        image_0 = self.image_loader.getImage(self.next_idx)
-        pose_0 = np.eye(4)
-        self.add_frame(self.cam.K, pose_0, image_0)
-        # ...
-        self.state = TrackingState.TRACKING
 
-    def add_frame(self, image, pose, K):
-        # cv2.goodFeaturesToTrack() requires a grayscale image,
-        # handle the 
+        # Assume first frame takes place at origin
+        image0 = self.image_loader.get_image(self.next_idx)
+        pose0 = np.eye(4)
+
         if self.image_loader.color is ImageType.GRAY:
-            new_frame = Frame(K = K,
-                              pose = pose,
-                              image_gray = image)
+            initial_frame = Frame(image_gray = image0,
+                                  pose = pose0)
         else:
-            new_frame = Frame(K = K, 
-                              pose = pose,
-                              image_color = image)
-            new_frame.image_gray = cv2.cvtColor(new_frame.image_color, 
-                                                cv2.COLOR_BGR2GRAY)
-        new_frame.features = cv2.goodFeaturesToTrack(new_frame.image_gray,
+            initial_frame = Frame(image_color = image0,
+                                  pose = pose0)
+            initial_frame.image_gray = cv2.cvtColor(initial_frame.image_color,
+                                                    cv2.COLOR_BGR2GRAY)
+        
+        initial_frame.features = cv2.goodFeaturesToTrack(initial_frame.image_gray,
                                                      mask = None,
                                                      **self.feature_params)
-        self.frames.append(new_frame)
 
-    def track_features(self, frame1, frame2):
+        self.frames.append(initial_frame)
+
+        self.next_idx = self.next_idx + 1
+
+        # Now process second frame, track features, and calculate pose
+        image1 = self.image_loader.get_image(self.next_idx)
+        if self.image_loader.color is ImageType.GRAY:
+            second_frame = Frame(image_gray = image1)
+        else:
+            second_frame = Frame(image_color = image1)
+            second_frame.image_gray = cv2.cvtColor(second_frame.image_color,
+                                                   cv2.COLOR_BGR2GRAY)
+        
+        # track features
+        pts2, st, err = cv2.calcOpticalFlowPyrLK(initial_frame.image_gray,
+                                                 second_frame.image_gray,
+                                                 initial_frame.features,
+                                                 None,
+                                                 **self.lk_params)
+        # remove failed poins
+        second_frame.features = pts2[st == 1]
+
+        # calculate pose
+        E, mask = cv2.findEssentialMat(initial_frame.features[st == 1],
+                                       second_frame.features,
+                                       self.cam.K,
+                                       cv2.RANSAC,
+                                       threshold = 2,
+                                       prob = .99)
+        _, R, t, mask = cv2.recoverPose(E,
+                                        initial_frame.features[st == 1],
+                                        second_frame.features,
+                                        self.cam.K)
+        pose1 = np.eye(4)
+        pose1[0:3, 0:3] = R
+        pose1[0:3,3] = np.squeeze(t)
+        second_frame.pose = pose1
+        self.frames.append(second_frame)
+        # ...
+        self.next_idx = self.next_idx + 1
+        self.state = TrackingState.TRACKING
+
+    def add_frame(self, pose = None, image = None):
+        """ Calculate the pose of the camera in a new image and add that state to the system.
+
+        Steps:
+            Create a new frame with the image
+            Track features from the previous frame into the new frame
+            Calculate camera pose
+            Append frame to system
+
+        Arguments:
+            image (np.array): The image taken at this frame
+
+        Returns:
+            None
+        """
+
+        # Create new frame
+        if self.image_loader.color is ImageType.GRAY:
+            new_frame = Frame(image_gray = image)
+        else:
+            new_frame = Frame(image_color = image)
+            new_frame.image_gray = cv2.cvtColor(new_frame.image_color, 
+                                                cv2.COLOR_BGR2GRAY)
+        
+        # Track features into this new frame
+
+        self.frames.append(new_frame)
+        self.next_idx = self.next_idx + 1
+
+    
+    def run_odometry(self):
         pass
