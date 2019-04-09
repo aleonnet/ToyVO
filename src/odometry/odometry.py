@@ -33,8 +33,11 @@ class Odometry(object):
         # Lucas-Kanade tracking info
         # https://docs.opencv.org/3.4/d7/d8b/tutorial_py_lucas_kanade.html
         # TODO: Replace goodFeaturesToTrack with surf detector and freak descriptor
+        # as suggested here:
+        # https://link.springer.com/content/pdf/10.1007%2Fs10846-017-0762-8.pdf
         self.detector = cv2.xfeatures2d.SURF_create() # not used yet
         self.extractor = cv2.xfeatures2d.FREAK_create() # not used yet
+        self.matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True) # not used yet
         self.lk_params = dict(winSize = (15,15),
                               maxLevel = 2,
                               criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,
@@ -68,8 +71,6 @@ class Odometry(object):
         initial_frame.features = cv2.goodFeaturesToTrack(initial_frame.image_gray,
                                                      mask = None,
                                                      **self.feature_params)
-
-        print(initial_frame.features.shape)
 
 
         for i in range(initial_frame.features.shape[0]):

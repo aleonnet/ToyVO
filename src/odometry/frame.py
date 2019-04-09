@@ -18,3 +18,8 @@ class Frame(object):
         self.image_annotated = None
 
         self.features = None
+
+        """ replace features with these when switching over to FREAK+Fast-Hessian
+        self.keypoints = None
+        self.descriptors = None
+        """
