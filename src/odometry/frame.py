@@ -7,7 +7,9 @@ class Frame(object):
     Attributes:
         image_gray (np.array): Grayscale image taken in current frame
         image_color (np.array): Color image taken in current frame
-        pose (np.array): 4D homogeneous transformation matrix from world to camera coordinates
+        pose (np.array): 4D homogeneous transformation matrix from previous frame to
+            current frame coordinates
+            Note: To form trajectory, concatenate all transformations 
         features (np.array): Pixel coordinates of tracked features
     """
 
