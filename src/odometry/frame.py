@@ -15,5 +15,6 @@ class Frame(object):
         self.pose = pose
         self.image_color = image_color
         self.image_gray = image_gray
+        self.image_annotated = None
 
-        self.features = []
+        self.features = None
