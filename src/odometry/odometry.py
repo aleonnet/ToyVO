@@ -59,12 +59,9 @@ class Odometry(object):
         if self.image_loader.color is ImageType.GRAY:
             initial_frame = Frame(image_gray = image0,
                                   pose = pose0)
-            initial_frame.image_annotated = cv2.cvtColor(initial_frame.image_gray,
-                                                         cv2.COLOR_GRAY2BGR)
         else:
             initial_frame = Frame(image_color = image0,
                                   pose = pose0)
-            initial_frame.image_annotated = initial_frame.image_color
             initial_frame.image_gray = cv2.cvtColor(initial_frame.image_color,
                                                     cv2.COLOR_BGR2GRAY)
         
@@ -83,14 +80,12 @@ class Odometry(object):
         self.next_idx = self.next_idx + 1
 
         # Now process second frame, track features, and calculate pose
+        # TODO: Look to move this into add_frame maybe
         image1 = self.image_loader.get_image(self.next_idx)
         if self.image_loader.color is ImageType.GRAY:
             second_frame = Frame(image_gray = image1)
-            second_frame.image_annotated = cv2.cvtColor(second_frame.image_gray,
-                                                        cv2.COLOR_GRAY2BGR)
         else:
             second_frame = Frame(image_color = image1)
-            second_frame.image_annotated = second_frame.image_color
             second_frame.image_gray = cv2.cvtColor(second_frame.image_color,
                                                    cv2.COLOR_BGR2GRAY)
         
@@ -102,11 +97,6 @@ class Odometry(object):
                                                  **self.lk_params)
         # remove failed poins
         second_frame.features = pts2[st == 1]
-
-        for i in range(second_frame.features.shape[0]):
-            u = int(second_frame.features[i,1])
-            v = int(second_frame.features[i,0])
-            second_frame.image_annotated[u,v] = [0, 0, 255]
 
         # calculate pose
         E, mask = cv2.findEssentialMat(initial_frame.features[st == 1],
