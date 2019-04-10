@@ -30,6 +30,9 @@ def run_odometry(args):
     # TODO: Initialize tracking loop
     for i in range(2, odom.image_loader.num_images):
         # run loop
+        new_image = odom.image_loader.get_image(i)
+        cv2.imshow("Frame", new_image)
+        cv2.waitKey(100)
         pass
 
 if __name__ == '__main__':
