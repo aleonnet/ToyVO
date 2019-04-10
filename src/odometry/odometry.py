@@ -123,10 +123,10 @@ class Odometry(object):
         pose1[0:3, 0:3] = R
         pose1[0:3,3] = np.squeeze(t)
         second_frame.pose = pose1
-
         self.frames.append(second_frame)
-        self.next_idx = self.next_idx + 1
-        self.state = TrackingState.TRACKING
+
+        self.next_idx = self.next_idx + 1 # ready to read third frame next
+        self.state = TrackingState.TRACKING # successful initialization
 
     def add_frame(self, pose = None, image = None):
         # TODO: NOT FINISHED

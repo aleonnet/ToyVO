@@ -10,7 +10,7 @@ import argparse
 from odometry.camera import Camera
 from odometry.odometry import Odometry, TrackingState
 
-def initializeOdometry(args):
+def initialize_odometry(args):
     """ return odometry system """
     with open(args.camera, 'r') as stream:
         camera_dict = yaml.load(stream, Loader=yaml.BaseLoader)
@@ -21,10 +21,7 @@ def initializeOdometry(args):
 def run_odometry(args):
     # TODO: Initialization phase 1
     #   Initialize odometry object
-    odom = initializeOdometry(args)
-    #   Grab first frame
-    #   Detect features
-    #   Set state to initializing
+    odom = initialize_odometry(args)
     odom.initialize_tracking()
     if odom.state is not TrackingState.TRACKING:
         print("Error in initialization. Exiting")
