@@ -81,9 +81,6 @@ class Odometry(object):
         self.frames.append(initial_frame)
 
         self.next_idx = self.next_idx + 1
-        cv2.imshow("Frame 1", initial_frame.image_annotated)
-        cv2.waitKey(0)
-        print("First frame added")
 
         # Now process second frame, track features, and calculate pose
         image1 = self.image_loader.get_image(self.next_idx)
@@ -105,8 +102,6 @@ class Odometry(object):
                                                  **self.lk_params)
         # remove failed poins
         second_frame.features = pts2[st == 1]
-        print(second_frame.features.shape)
-
 
         for i in range(second_frame.features.shape[0]):
             u = int(second_frame.features[i,1])
@@ -128,14 +123,9 @@ class Odometry(object):
         pose1[0:3, 0:3] = R
         pose1[0:3,3] = np.squeeze(t)
         second_frame.pose = pose1
+
         self.frames.append(second_frame)
-
-
-        print("Second frame added")
-        cv2.imshow("Frame 2", second_frame.image_annotated)
-        cv2.waitKey(0)
         self.next_idx = self.next_idx + 1
-
         self.state = TrackingState.TRACKING
 
     def add_frame(self, pose = None, image = None):
