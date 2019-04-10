@@ -25,7 +25,6 @@ class Odometry(object):
         self.cam = camera if camera is not None else Camera()
         self.image_loader = ImageLoader(image_path)
         self.state = TrackingState.UNINITIALIZED
-        self.current_pose = None
 
         self.frames = []
         self.next_idx = 0 # index of next image to be processed
@@ -56,7 +55,6 @@ class Odometry(object):
         # Assume first frame takes place at origin
         image0 = self.image_loader.get_image(self.next_idx)
         pose0 = np.eye(4)
-        self.current_pose = pose0
 
         if self.image_loader.color is ImageType.GRAY:
             initial_frame = Frame(image_gray = image0,
@@ -70,8 +68,7 @@ class Odometry(object):
         initial_frame.features = cv2.goodFeaturesToTrack(initial_frame.image_gray,
                                                      mask = None,
                                                      **self.feature_params)
-
-        self.frames.append(initial_frame)
+        # not inserting frame until after point tracking is done
         self.next_idx = self.next_idx + 1
 
         # Now process second frame, track features, and calculate pose
@@ -85,14 +82,15 @@ class Odometry(object):
                                                    cv2.COLOR_BGR2GRAY)
         
         # track features
-        pts1, st, err = cv2.calcOpticalFlowPyrLK(initial_frame.image_gray,
+        pts2, st, err = cv2.calcOpticalFlowPyrLK(initial_frame.image_gray,
                                                  second_frame.image_gray,
                                                  initial_frame.features,
                                                  None,
                                                  **self.lk_params)
 
-        second_frame.features = pts1[st == 1]
+        second_frame.features = pts2[st == 1]
         initial_frame.features = initial_frame.features[st == 1]
+        self.frames.append(initial_frame)
 
         # calculate pose
         E, mask = cv2.findEssentialMat(initial_frame.features,
@@ -109,7 +107,6 @@ class Odometry(object):
         pose1[0:3, 0:3] = R
         pose1[0:3,3] = np.squeeze(t)
         second_frame.pose = pose1
-        self.current_pose = np.dot(pose1, pose0)
         self.frames.append(second_frame)
 
         self.next_idx = self.next_idx + 1 # ready to read third frame next
@@ -135,7 +132,7 @@ class Odometry(object):
             self.state = TrackingState.END_OF_IMAGES
             return
         
-        # Access a copy of the previous frame 
+        # Access previous frame 
         previous_frame = self.frames[self.next_idx - 1]
 
         # pad features from previous frame for masking
@@ -160,6 +157,9 @@ class Odometry(object):
                                                     **self.lk_params)
         new_frame.features = pts_new[st == 1]
         previous_frame.features = previous_frame.features[st == 1]
+
+        # 
+        print(pts_new.shape)
 
         # calculate pose
         E, mask = cv2.findEssentialMat(previous_frame.features,

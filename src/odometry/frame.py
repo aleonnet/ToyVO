@@ -10,7 +10,9 @@ class Frame(object):
         pose (np.array): 4D homogeneous transformation matrix from previous frame to
             current frame coordinates
             Note: To form trajectory, concatenate all transformations 
-        features (np.array): Pixel coordinates of tracked features
+        features (np.array): Pixel coordinates of features known in this frame
+            Note: features of frame n+1 will be fewer than frame n as known features
+                can fail to be located in the next frame
     """
 
     def __init__(self, pose = None, image_color=None, image_gray = None):

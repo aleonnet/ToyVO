@@ -31,6 +31,7 @@ def run_odometry(args):
     for i in range(2, odom.image_loader.num_images):
         # run loop
         new_image = odom.image_loader.get_image(i)
+        odom.add_frame(image = new_image)
         cv2.imshow("Frame", new_image)
         cv2.waitKey(100)
         pass
