@@ -25,11 +25,12 @@ class Odometry(object):
         self.cam = camera if camera is not None else Camera()
         self.image_loader = ImageLoader(image_path)
         self.state = TrackingState.UNINITIALIZED
-        self.current_pose = None
+        self.R = None
+        self.t = None
 
         self.frames = []
         self.next_idx = 0 # index of next image to be processed
-        
+
         self.min_features = 100 # when using a descriptor besides GFTT this should be much higher
         # Lucas-Kanade tracking info
         # https://docs.opencv.org/3.4/d7/d8b/tutorial_py_lucas_kanade.html
@@ -42,7 +43,7 @@ class Odometry(object):
         self.lk_params = dict(winSize = (15,15),
                               maxLevel = 2,
                               criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,
-                                        10, 0.03))
+                                          10, 0.03))
         self.feature_params = dict(maxCorners = 1500,
                                    qualityLevel = 0.3,
                                    minDistance = 7,
@@ -56,7 +57,8 @@ class Odometry(object):
         # Assume first frame takes place at origin
         image0 = self.image_loader.get_image(self.next_idx)
         pose0 = np.eye(4)
-        self.current_pose = pose0
+        self.R = np.eye(3)
+        self.t = np.zeros((3,1))
 
         if self.image_loader.color is ImageType.GRAY:
             initial_frame = Frame(image_gray = image0,
@@ -66,10 +68,10 @@ class Odometry(object):
                                   pose = pose0)
             initial_frame.image_gray = cv2.cvtColor(initial_frame.image_color,
                                                     cv2.COLOR_BGR2GRAY)
-        
+
         initial_frame.features = cv2.goodFeaturesToTrack(initial_frame.image_gray,
-                                                     mask = None,
-                                                     **self.feature_params)
+                                                         mask = None,
+                                                         **self.feature_params)
 
         self.frames.append(initial_frame)
         self.next_idx = self.next_idx + 1
@@ -83,7 +85,7 @@ class Odometry(object):
             second_frame = Frame(image_color = image1)
             second_frame.image_gray = cv2.cvtColor(second_frame.image_color,
                                                    cv2.COLOR_BGR2GRAY)
-        
+
         # track features
         pts1, st, err = cv2.calcOpticalFlowPyrLK(initial_frame.image_gray,
                                                  second_frame.image_gray,
@@ -105,11 +107,15 @@ class Odometry(object):
                                         initial_frame.features,
                                         second_frame.features,
                                         self.cam.K)
+        print(t.shape)
+
+        self.R = R.dot(self.R)
+        self.t = self.t + self.R.dot(t)
+
         pose1 = np.eye(4)
         pose1[0:3, 0:3] = R
         pose1[0:3,3] = np.squeeze(t)
         second_frame.pose = pose1
-        self.current_pose = np.dot(pose1, pose0)
         self.frames.append(second_frame)
 
         self.next_idx = self.next_idx + 1 # ready to read third frame next
@@ -131,10 +137,11 @@ class Odometry(object):
         Returns:
             None
         """
+        print(self.next_idx)
         if image is None:
             self.state = TrackingState.END_OF_IMAGES
             return
-        
+
         # Access a copy of the previous frame 
         previous_frame = self.frames[self.next_idx - 1]
 
@@ -150,7 +157,12 @@ class Odometry(object):
             new_frame = Frame(image_color = image)
             new_frame.image_gray = cv2.cvtColor(new_frame.image_color, 
                                                 cv2.COLOR_BGR2GRAY)
-        
+
+        # Check if there are enough features, and redetect if not
+        if np.amax(previous_frame.features.shape) <= self.min_features:
+            previous_frame.features = cv2.goodFeaturesToTrack(previous_frame.image_gray,
+                                                              mask = None,
+                                                              **self.feature_params)
 
         # Track features into this new frame
         pts_new, st, err = cv2.calcOpticalFlowPyrLK(previous_frame.image_gray,
@@ -158,6 +170,7 @@ class Odometry(object):
                                                     previous_frame.features,
                                                     None,
                                                     **self.lk_params)
+
         new_frame.features = pts_new[st == 1]
         previous_frame.features = previous_frame.features[st == 1]
 
@@ -172,6 +185,11 @@ class Odometry(object):
                                         previous_frame.features,
                                         new_frame.features,
                                         self.cam.K)
+
+        self.R = R.dot(self.R)
+        self.t = self.t + self.R.dot(t)
+        print(self.t)
+
         pose1 = np.eye(4)
         pose1[0:3, 0:3] = R
         pose1[0:3,3] = np.squeeze(t)
@@ -179,7 +197,3 @@ class Odometry(object):
 
         self.frames.append(new_frame)
         self.next_idx = self.next_idx + 1
-
-    
-    def run_odometry(self):
-        pass
